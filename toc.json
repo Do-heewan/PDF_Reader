@@ -1,0 +1,185 @@
+{
+  "source": "Kubernetes Patterns Reusable Elements for Designing Cloud-Native Applications, 2nd Edition.pdf",
+  "chapters": [
+    {
+      "index": 1,
+      "title": "Chapter 1. Introduction",
+      "start": 26,
+      "end": 39
+    },
+    {
+      "index": 2,
+      "title": "Chapter 2. Predictable Demands",
+      "start": 40,
+      "end": 53
+    },
+    {
+      "index": 3,
+      "title": "Chapter 3. Declarative Deployment",
+      "start": 54,
+      "end": 65
+    },
+    {
+      "index": 4,
+      "title": "Chapter 4. Health Probe",
+      "start": 66,
+      "end": 75
+    },
+    {
+      "index": 5,
+      "title": "Chapter 5. Managed Lifecycle",
+      "start": 76,
+      "end": 85
+    },
+    {
+      "index": 6,
+      "title": "Chapter 6. Automated Placement",
+      "start": 86,
+      "end": 103
+    },
+    {
+      "index": 7,
+      "title": "Chapter 7. Batch Job",
+      "start": 104,
+      "end": 111
+    },
+    {
+      "index": 8,
+      "title": "Chapter 8. Periodic Job",
+      "start": 112,
+      "end": 115
+    },
+    {
+      "index": 9,
+      "title": "Chapter 9. Daemon Service",
+      "start": 116,
+      "end": 121
+    },
+    {
+      "index": 10,
+      "title": "Chapter 10. Singleton Service",
+      "start": 122,
+      "end": 131
+    },
+    {
+      "index": 11,
+      "title": "Chapter 11. Stateless Service",
+      "start": 132,
+      "end": 139
+    },
+    {
+      "index": 12,
+      "title": "Chapter 12. Stateful Service",
+      "start": 140,
+      "end": 151
+    },
+    {
+      "index": 13,
+      "title": "Chapter 13. Service Discovery",
+      "start": 152,
+      "end": 169
+    },
+    {
+      "index": 14,
+      "title": "Chapter 14. Self Awareness",
+      "start": 170,
+      "end": 177
+    },
+    {
+      "index": 15,
+      "title": "Chapter 15. Init Container",
+      "start": 178,
+      "end": 185
+    },
+    {
+      "index": 16,
+      "title": "Chapter 16. Sidecar",
+      "start": 186,
+      "end": 191
+    },
+    {
+      "index": 17,
+      "title": "Chapter 17. Adapter",
+      "start": 192,
+      "end": 195
+    },
+    {
+      "index": 18,
+      "title": "Chapter 18. Ambassador",
+      "start": 196,
+      "end": 201
+    },
+    {
+      "index": 19,
+      "title": "Chapter 19. EnvVar Configuration",
+      "start": 202,
+      "end": 209
+    },
+    {
+      "index": 20,
+      "title": "Chapter 20. Configuration Resource",
+      "start": 210,
+      "end": 217
+    },
+    {
+      "index": 21,
+      "title": "Chapter 21. Immutable Configuration",
+      "start": 218,
+      "end": 225
+    },
+    {
+      "index": 22,
+      "title": "Chapter 22. Configuration Template",
+      "start": 226,
+      "end": 235
+    },
+    {
+      "index": 23,
+      "title": "Chapter 23. Process Containment",
+      "start": 236,
+      "end": 245
+    },
+    {
+      "index": 24,
+      "title": "Chapter 24. Network Segmentation",
+      "start": 246,
+      "end": 261
+    },
+    {
+      "index": 25,
+      "title": "Chapter 25. Secure Configuration",
+      "start": 262,
+      "end": 277
+    },
+    {
+      "index": 26,
+      "title": "Chapter 26. Access Control",
+      "start": 278,
+      "end": 303
+    },
+    {
+      "index": 27,
+      "title": "Chapter 27. Controller",
+      "start": 304,
+      "end": 317
+    },
+    {
+      "index": 28,
+      "title": "Chapter 28. Operator",
+      "start": 318,
+      "end": 333
+    },
+    {
+      "index": 29,
+      "title": "Chapter 29. Elastic Scale",
+      "start": 334,
+      "end": 359
+    },
+    {
+      "index": 30,
+      "title": "Chapter 30. Image Builder",
+      "start": 360,
+      "end": 383
+    }
+  ]
+}
