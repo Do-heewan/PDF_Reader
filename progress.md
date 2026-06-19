@@ -4,7 +4,7 @@
 
 | # | 챕터 | 페이지 | 상태 | 학습일 |
 |---|------|--------|------|--------|
-| 01 | Chapter 1. Introduction | 26–39 | ☐ |  |
+| 01 | Chapter 1. Introduction | 26–39 | ☑ | 2026-06-19 |
 | 02 | Chapter 2. Predictable Demands | 40–53 | ☐ |  |
 | 03 | Chapter 3. Declarative Deployment | 54–65 | ☐ |  |
 | 04 | Chapter 4. Health Probe | 66–75 | ☐ |  |
