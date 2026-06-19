@@ -1,9 +1,10 @@
-# 원서 PDF(저작권) — 커밋하지 않는다
+# 책 PDF(저작권) — 커밋하지 않는다
 data/*.pdf
 
-# 분할 산출물: 원본 PDF/텍스트는 제외, 학습노트(.md)만 추적
+# 분할 산출물(원본 PDF·텍스트·학습노트)은 모두 로컬 전용 — git 제외
 chapters/**/source.pdf
 chapters/**/source.txt
+chapters/**/*.md
 # (toc.json·progress.md 는 챕터 매핑·학습 진행 기록이라 일부러 커밋한다)
 
 # Python
