@@ -1,0 +1,217 @@
+# CLAUDE.md
+
+> PDF 개발 서적을 챕터별 학습노트로 정리하는 로컬 도구.
+> 이 문서는 Claude Code가 이 프로젝트를 **개발하고 운영**할 때 따르는 단일 기준이다.
+> 빈 폴더에서 시작하더라도 이 문서만으로 전체 구현이 가능하도록 작성되었다.
+
+---
+
+## 1. 프로젝트 목표
+
+- **무엇을**: `data/` 에 넣은 PDF 서적을 챕터별로 분할하고, 챕터마다 한국어 학습노트
+  (`.md`)를 생성한다.
+- **왜**: 쿠버네티스 원서(약 350쪽, 30챕터)를 **하루 1챕터씩 한 달간** 학습하고,
+  그 내용을 개발 블로그에 정리·업로드하기 위해서다.
+- **현재 범위**: 로컬 프로젝트. 블로그 자동 게시는 추후 과제(지금은 `.md` 생성까지).
+
+## 2. 핵심 설계 원칙 — 2단계 분리
+
+이 프로젝트의 모든 구조는 아래 분리에서 나온다. **두 역할을 섞지 말 것.**
+
+1. **분할 (코드 / AI 불필요)** — `scripts/extract_chapters.py` 가 PDF 목차를 읽어
+   챕터 경계(페이지 범위)를 찾고 챕터별 PDF로 자른다. 결정론적이라 결과가 항상 같고,
+   350쪽 전체를 매번 Claude에 넣지 않아도 된다.
+2. **정리 (AI)** — 잘린 챕터 PDF **하나만** Claude Code(`/study`)가 읽고 학습노트를 만든다.
+
+→ 토큰·비용 절약 / 그림 보존(텍스트만 뽑으면 다이어그램이 소실됨) / 재현성 확보.
+
+## 3. 폴더 구조
+
+```
+.
+├── data/                       # 원서 PDF 1개 (입력)
+│   └── kubernetes.pdf
+├── scripts/
+│   └── extract_chapters.py     # 챕터 분할기 (구성요소 ①)
+├── chapters/                   # 분할 결과 (자동 생성)
+│   └── chapterNN/
+│       ├── source.pdf          # 분할 원본 — 읽기 입력, 수정 금지
+│       ├── source.txt          # 텍스트 추출본 (--text 옵션일 때만)
+│       └── chapterNN.md        # 학습노트 — 최종 산출물
+├── .claude/
+│   ├── CLAUDE.md               # 이 문서
+│   └── commands/study.md       # /study 슬래시 커맨드 (구성요소 ②)
+├── toc.json                    # 챕터↔페이지 매핑 (자동 생성·수동 교정 가능)
+├── progress.md                 # 30일 학습 체크리스트 (자동 생성)
+└── requirements.txt
+```
+
+> 챕터 폴더를 루트에 평탄하게 두려면 `extract_chapters.py` 의
+> `DEFAULT_OUT = ROOT / "chapters"` 를 `DEFAULT_OUT = ROOT` 로 바꾼다. 다만 30개 폴더가
+> `data/`·`scripts/` 와 섞이므로 `chapters/` 로 묶는 쪽을 권장한다.
+
+## 4. 기술 스택 / 실행
+
+- Python 3.10+
+- `pymupdf` — PDF 목차 읽기 + 분할 + 텍스트 추출을 모두 담당(단일 의존성).
+
+```bash
+pip install -r requirements.txt                 # requirements.txt 내용: pymupdf>=1.24
+python scripts/extract_chapters.py --inspect    # 챕터 감지 결과만 확인(파일 생성 안 함)
+python scripts/extract_chapters.py --text       # 분할 실행(+텍스트 추출)
+```
+
+---
+
+## 5. 구성요소 ① — 챕터 분할기 `scripts/extract_chapters.py`
+
+**책임**: PDF → 챕터별 `source.pdf` + `toc.json` + `progress.md`.
+요약·정리는 하지 않는다(그건 `/study` 의 몫).
+
+### CLI 인터페이스
+
+| 플래그 | 동작 |
+|---|---|
+| (없음) | 전체 챕터 분할 |
+| `--inspect` | 감지된 챕터 구조만 출력, 파일 생성 안 함 |
+| `--chapter N` | N번 챕터만 (재)분할 |
+| `--text` | `source.pdf` 와 함께 `source.txt` 도 추출 |
+| `--reindex` | `toc.json` 무시하고 목차 재감지 |
+| `--pdf PATH` | PDF 경로 직접 지정(생략 시 `data/` 자동 탐색) |
+| `--out-dir DIR` | 챕터 폴더 생성 위치(기본 `chapters/`) |
+
+### 챕터 감지 — 우선순위
+
+1. `toc.json` 이 있으면 그대로 사용(사람이 교정한 정답). `--reindex` 면 무시.
+2. **PDF 내장 목차(outline)**: 제목이 `Chapter N` / `제N장` / `N장` 패턴과 맞는 항목을
+   우선 채택(3개 이상일 때). 안 맞으면 가장 얕은 레벨 항목을 챕터로 간주.
+3. 목차가 없으면 각 페이지 상단(앞 6줄)에서 위 패턴을 스캔.
+4. 그래도 못 찾으면 종료하며 `toc.json` 수동 작성을 안내.
+
+### 페이지 범위 규칙
+
+챕터 k = `[start_k, start_{k+1} - 1]`, 마지막 챕터는 문서 끝까지.
+목차 페이지 번호는 **1-based 물리 페이지**로 다룬다.
+
+### 출력물
+
+- `chapters/chapterNN/source.pdf` — PyMuPDF `insert_pdf(from_page, to_page)` 로 분할.
+- `chapters/chapterNN/source.txt` — `--text` 일 때만.
+- `toc.json` — `{ "source": str, "chapters": [{ "index", "title", "start", "end" }] }`.
+- `progress.md` — 체크리스트. **이미 존재하면 덮어쓰지 않는다**(진행 상황 보존).
+
+### 구현 주의
+
+- import 는 `import fitz` 우선, 실패 시 `import pymupdf as fitz` 로 폴백.
+- `data/` 에 PDF가 0개거나 2개 이상이면 명확한 메시지로 종료.
+- 헤더·푸터에 챕터 번호가 반복되는 PDF에서 같은 챕터 번호가 중복 감지되지 않도록 처리.
+
+---
+
+## 6. 구성요소 ② — `/study` 커맨드 `.claude/commands/study.md`
+
+`/study NN` 의 동작:
+
+1. 번호를 두 자리로 정규화(`3` → `03`). 대상 폴더는 `chapters/chapterNN/`.
+2. `chapters/chapterNN/source.pdf` 를 읽는다 — 텍스트뿐 아니라 **그림·다이어그램까지**
+   해석한다. `source.txt` 가 있으면 보조로 참고.
+3. 아래 §7 규칙·템플릿대로 `chapters/chapterNN/chapterNN.md` 를 작성.
+4. `progress.md` 의 해당 줄 `☐` → `☑`, 학습일 칸을 오늘 날짜로 채움.
+5. 마지막에 **셀프 체크 3문항만** 사용자에게 보여주고 스스로 답해보도록 안내.
+
+**원칙: 한 번에 한 챕터만.** 여러 챕터를 몰아서 생성하지 않는다(매일 학습이 목적).
+`source.pdf` 가 없으면 먼저 `python scripts/extract_chapters.py` 를 안내한다.
+
+---
+
+## 7. 학습노트 작성 규칙
+
+`source.pdf` 는 그림·다이어그램까지 포함된 챕터 원본이다. 텍스트만 보지 말 것.
+
+- 책 문장을 옮겨 적지 않는다. 핵심을 **자기 말로 재구성**(저작권·학습 양면에서 중요).
+- `kubectl` 명령·YAML 매니페스트는 코드 블록으로. 리소스/명령 이름은 백틱:
+  `Pod`, `Deployment`, `kubectl apply`, `etcd`.
+- 군더더기·홍보성 표현 없는 **선언형 한국어 기술 문체**.
+- 그림은 '무엇을 보여주는 그림인지 + 흐름'을 글/표/화살표로 재현한다.
+- 한 챕터를 다른 사람에게 설명할 수 있을 정도의 분량. 불필요하게 늘이지 않는다.
+
+### 학습노트 템플릿 (`chapterNN.md`)
+
+````markdown
+# {NN}. {챕터 제목}
+
+> 학습일: {YYYY-MM-DD} · 원서 pp. {start}–{end}
+
+## 한 줄 요약
+이 챕터가 결국 무엇을 말하는지 한 문장.
+
+## 선행 지식 / 직전 챕터와의 연결
+이 챕터를 이해하려면 알아야 할 것, 앞 챕터에서 이어지는 맥락.
+
+## 핵심 개념
+### {개념 1}
+- **정의**:
+- **왜 필요한가**(어떤 문제를 푸는가):
+- **동작 방식**:
+
+### {개념 2}
+...
+
+## 주요 명령어 / 매니페스트
+```bash
+kubectl ...
+```
+```yaml
+apiVersion: ...
+```
+
+## 다이어그램으로 이해하기
+책의 핵심 그림이 보여주는 구조와 흐름을 글/표/화살표로 재구성.
+
+## 자주 헷갈리는 점 · 함정
+-
+
+## 셀프 체크 (보지 않고 답해보기)
+1.
+2.
+3.
+
+## 한 줄 회고 — 직접 채우기
+> (학습 후 본인이 작성: 가장 인상 깊었던 점 / 실무에서 쓸 곳)
+````
+
+'셀프 체크'는 **질문만 남기고 답은 비운다.** '회고'는 사용자가 직접 채운다.
+노트가 정답을 다 떠먹여주면 블로그에 옮겨도 머리에 남지 않는다 — 이 두 섹션이
+수동 학습을 능동 학습으로 바꾸는 장치다.
+
+---
+
+## 8. 진행 관리
+
+- `progress.md`: 30일 체크리스트. `/study` 가 자동 갱신한다. 한 달 학습 추적용.
+- `toc.json`: 감지가 틀리면 `start`/`end` 를 직접 고친 뒤 재분할. 목차가 아예 없는
+  PDF라면 이 파일을 처음부터 직접 작성해도 된다.
+
+```json
+{
+  "source": "kubernetes.pdf",
+  "chapters": [
+    { "index": 1, "title": "Introduction", "start": 1,  "end": 12 },
+    { "index": 2, "title": "Pods",         "start": 13, "end": 28 }
+  ]
+}
+```
+
+---
+
+## 9. 개발 작업 지침 (Claude Code)
+
+- **빌드 순서**: ① `scripts/extract_chapters.py` 구현 → ② 목차 있는 작은 테스트 PDF로
+  `--inspect` 및 분할 페이지 수 검증 → ③ `.claude/commands/study.md` 작성 →
+  ④ 본 문서 유지보수.
+- **검증 방법**: 전체 책 없이도 로직을 확인할 수 있다. PyMuPDF의 `doc.set_toc([...])` 로
+  목차가 있는 더미 PDF를 만들어 `--inspect` 결과와 잘린 `source.pdf` 의 페이지 수를
+  기대값과 비교한다.
+- **확장 포인트(추후)**: 다른 책으로 재사용(이미 책-무관 설계), 블로그 자동 게시 단계
+  추가, 다이어그램 이미지 별도 추출 후 노트에 삽입.
+- **금지**: 비밀번호·토큰 등 자격증명을 코드·설정 파일에 넣지 않는다.
