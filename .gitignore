@@ -1,0 +1,13 @@
+# 원서 PDF(저작권) — 커밋하지 않는다
+data/*.pdf
+
+# 분할 산출물: 원본 PDF/텍스트는 제외, 학습노트(.md)만 추적
+chapters/**/source.pdf
+chapters/**/source.txt
+# (toc.json·progress.md 는 챕터 매핑·학습 진행 기록이라 일부러 커밋한다)
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
