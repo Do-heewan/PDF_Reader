@@ -7,6 +7,9 @@ chapters/**/source.txt
 chapters/**/*.md
 # (toc.json·progress.md 는 챕터 매핑·학습 진행 기록이라 일부러 커밋한다)
 
+# 노션 발행 매핑(개인 워크스페이스 page_id) — 로컬 전용
+notion.json
+
 # Python
 __pycache__/
 *.pyc
