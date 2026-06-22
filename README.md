@@ -32,8 +32,7 @@
 .
 ├── data/                       # 학습할 책 PDF 1개 (입력, 책 무관) — git 제외
 ├── scripts/
-│   ├── extract_chapters.py     # 챕터 분할기 (구성요소 ①)
-│   └── make_dummy_pdf.py       # 검증용 더미 PDF 생성기
+│   └── extract_chapters.py     # 챕터 분할기 (구성요소 ①)
 ├── chapters/                   # 분할 결과 (자동 생성)
 │   └── chapterNN/
 │       ├── source.pdf          # 분할 원본 (읽기 입력) — git 제외
