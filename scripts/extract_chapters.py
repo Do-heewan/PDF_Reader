@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """챕터 분할기 (구성요소 ①).
 
-PDF 원서를 챕터별 `source.pdf` 로 자르고, `toc.json` / `progress.md` 를 만든다.
+PDF 원서를 챕터별 `source.pdf` 로 자르고, `toc.json` 을 만든다.
 요약·정리는 하지 않는다 — 그건 `/study` 슬래시 커맨드의 몫이다.
 
 자세한 설계는 .claude/CLAUDE.md 섹션 5 참고.
@@ -33,7 +33,6 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DATA = ROOT / "data"
 DEFAULT_OUT = ROOT / "chapters"
 TOC_PATH = ROOT / "toc.json"
-PROGRESS_PATH = ROOT / "progress.md"
 
 # "Chapter 5" / "제5장" / "5장" 형태의 챕터 머리글. 캡처 그룹 1 = 챕터 번호.
 CHAPTER_PATTERNS = [
@@ -153,7 +152,7 @@ def detect_chapters(doc) -> list[Chapter]:
 
 
 # --------------------------------------------------------------------------- #
-# toc.json / progress.md
+# toc.json
 # --------------------------------------------------------------------------- #
 def load_toc() -> list[Chapter]:
     data = json.loads(TOC_PATH.read_text(encoding="utf-8"))
@@ -165,22 +164,6 @@ def write_toc(source_name: str, chapters: list[Chapter]) -> None:
     TOC_PATH.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-
-
-def write_progress(chapters: list[Chapter]) -> None:
-    if PROGRESS_PATH.exists():
-        return  # 진행 상황 보존 — 절대 덮어쓰지 않는다.
-    lines = [
-        "# 학습 진행 (하루 1챕터)",
-        "",
-        "`/study NN` 실행 시 자동 갱신됩니다. ☐ → ☑",
-        "",
-        "| # | 챕터 | 페이지 | 상태 | 학습일 |",
-        "|---|------|--------|------|--------|",
-    ]
-    for c in chapters:
-        lines.append(f"| {c.index:02d} | {c.title} | {c.start}–{c.end} | ☐ |  |")
-    PROGRESS_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 # --------------------------------------------------------------------------- #
@@ -267,7 +250,6 @@ def main() -> None:
     for ch in targets:
         split_chapter(doc, ch, out_dir, args.text)
 
-    write_progress(chapters)
     doc.close()
     print("[완료] 이제 `/study <챕터번호>` 로 학습노트를 만드세요.")
 

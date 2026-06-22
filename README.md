@@ -24,6 +24,8 @@
 
 → 토큰·비용 절약 · 다이어그램 보존(텍스트만 뽑으면 그림이 소실됨) · 재현성 확보.
 
+`/study` 는 책의 핵심을 **자기 말로 재구성한 한국어 학습노트**(`chapterNN.md`)를 만듭니다.
+
 ---
 
 ## 폴더 구조
@@ -37,12 +39,12 @@
 │   └── chapterNN/
 │       ├── source.pdf          # 분할 원본 (읽기 입력) — git 제외
 │       ├── source.txt          # 텍스트 추출본 — git 제외
-│       └── chapterNN.md        # 학습노트 — 최종 산출물
+│       └── chapterNN.md        # 학습노트 (/study 산출물)
 ├── .claude/
 │   ├── CLAUDE.md               # 프로젝트 설계·운영 기준
-│   └── commands/study.md       # /study 슬래시 커맨드 (구성요소 ②)
+│   └── commands/
+│       └── study.md            # /study 슬래시 커맨드 (구성요소 ②)
 ├── toc.json                    # 챕터↔페이지 매핑 (자동 생성·수동 교정 가능)
-├── progress.md                 # 학습 체크리스트
 └── requirements.txt
 ```
 
@@ -86,15 +88,13 @@ python scripts/extract_chapters.py --text      # 분할 실행(+텍스트 추출
 /study 1
 ```
 
-`chapters/chapter01/source.pdf` 를 그림까지 읽어 `chapter01.md` 학습노트를 만들고,
-`progress.md` 의 해당 줄을 완료(☑)로 갱신한 뒤 셀프 체크 문항을 제시합니다.
-**한 번에 한 챕터만** 생성합니다(매일 학습이 목적).
+`chapters/chapter01/source.pdf` 를 그림까지 읽어 `chapter01.md` 학습노트를 만든 뒤
+셀프 체크 문항을 제시합니다. **한 번에 한 챕터만** 생성합니다(매일 학습이 목적).
 
 ---
 
 ## 진행 관리
 
-- `progress.md` — 학습 체크리스트. `/study` 가 자동 갱신합니다.
 - `toc.json` — 챕터↔페이지 매핑. 감지가 틀리면 직접 교정할 수 있는 정답 파일입니다.
 
 ## 기술 스택
