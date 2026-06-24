@@ -88,8 +88,9 @@ python scripts/extract_chapters.py --text      # 분할 실행(+텍스트 추출
 /study 1
 ```
 
-`chapters/chapter01/source.pdf` 를 그림까지 읽어 `chapter01.md` 학습노트를 만든 뒤
-셀프 체크 문항을 제시합니다. **한 번에 한 챕터만** 생성합니다(매일 학습이 목적).
+`chapters/chapter01/source.pdf` 를 그림까지 읽어 `chapter01.md` 학습노트를 만듭니다.
+직전 챕터 노트가 있으면 '지난 시간에 학습한 내용'으로 이어 주며, **한 번에 한 챕터만**
+생성합니다(매일 학습이 목적).
 
 ---
 
