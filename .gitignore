@@ -1,9 +1,9 @@
 # 책 PDF(저작권) — 커밋하지 않는다
 data/*.pdf
 
-# 분할 산출물(원본 PDF·텍스트·학습노트)은 모두 로컬 전용 — git 제외
+# 분할 산출물(원본 PDF·텍스트·대역본·학습노트)은 모두 로컬 전용 — git 제외
 chapters/**/source.pdf
-chapters/**/source.txt
+chapters/**/source*.txt
 chapters/**/*.md
 # (toc.json 은 챕터 매핑이라 일부러 커밋한다)
 
