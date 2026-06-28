@@ -154,9 +154,9 @@ def detect_chapters(doc) -> list[Chapter]:
 # --------------------------------------------------------------------------- #
 # toc.json
 # --------------------------------------------------------------------------- #
-def load_toc() -> list[Chapter]:
+def load_toc() -> tuple[str | None, list[Chapter]]:
     data = json.loads(TOC_PATH.read_text(encoding="utf-8"))
-    return [Chapter(**c) for c in data["chapters"]]
+    return data.get("source"), [Chapter(**c) for c in data["chapters"]]
 
 
 def write_toc(source_name: str, chapters: list[Chapter]) -> None:
@@ -216,10 +216,21 @@ def main() -> None:
     doc = fitz.open(pdf_path)
 
     # 챕터 목록 확보 — toc.json(사람 교정본) 우선, --reindex 면 재감지.
+    # 단, toc.json 의 source 가 현재 PDF와 다르면(= data/ 의 책이 바뀐 경우)
+    # 옛 책의 페이지 범위로 새 책을 자르지 않도록 자동으로 재감지한다.
     from_existing_toc = TOC_PATH.exists() and not args.reindex
     if from_existing_toc:
-        chapters = load_toc()
-    else:
+        toc_source, chapters = load_toc()
+        if toc_source is not None and toc_source != pdf_path.name:
+            print(
+                f"[경고] toc.json 은 다른 책('{toc_source}')용입니다. "
+                f"현재 PDF '{pdf_path.name}' 와 달라 목차를 재감지합니다.\n"
+                "       같은 책을 파일명만 바꾼 경우라면 toc.json 의 \"source\" 를 "
+                "새 파일명으로 고친 뒤 다시 실행하세요(교정한 페이지 범위 보존)."
+            )
+            from_existing_toc = False
+
+    if not from_existing_toc:
         chapters = detect_chapters(doc)
         if not chapters:
             sys.exit(
